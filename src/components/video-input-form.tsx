@@ -18,7 +18,10 @@ const statusMessages = {
 }
 
 interface VideoInputFormProps {
-  onVideoUploaded: (videoId: string) => void;
+  onVideoUploaded: (result: {
+    videoId: string;
+    transcription: string;
+  }) => void;
 }
 
 export function VideoInputForm({ onVideoUploaded }: Readonly<VideoInputFormProps>) {
@@ -95,11 +98,10 @@ export function VideoInputForm({ onVideoUploaded }: Readonly<VideoInputFormProps
 
     setStatus('generating');
 
-    await api.post(`/videos/${videoId}/transcription`, { prompt });
+    const transcription = (await api.post(`/videos/${videoId}/transcription`, { prompt })).data.transcription;
 
     setStatus('success');
-    onVideoUploaded(videoId);
-
+    onVideoUploaded({ videoId, transcription });
   }
 
   const previewUrl = useMemo(() => {
@@ -119,7 +121,9 @@ export function VideoInputForm({ onVideoUploaded }: Readonly<VideoInputFormProps
             src={previewUrl}
             controls={false}
             className="pointer-events-none absolute inset-0"
-          />
+          >
+            <track kind="captions" />
+          </video>
         ) : (
           <>
             <FileVideo className="w-4 h-4" />
